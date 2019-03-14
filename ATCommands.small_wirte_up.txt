@@ -1,0 +1,17 @@
+The arduino has a software serial connection to the sim800l module witch is what conects to the cell network if i send these serial commands to the module. I received the date that i need withc is the "temperature,device=arduino01 value=83.2". When I put this into the script I have attached it does not work correctly. I dont receive the data. I would also like to see what the sim800l module says back after the command is sent but this is also not doing that.
+
+
+
+
+AT+CREG?
+AT+CGACT?
+AT+CGATT=1
+wait=7
+AT+CSTT="hologram"
+AT+CIICR 
+wait=6
+AT+CIFSR
+AT+CIPSTART="UDP","73.230.127.71","8888"
+AT+CIPSEND=39
+temperature,device=arduino01 value=83.2
+AT+CIPSHUT
