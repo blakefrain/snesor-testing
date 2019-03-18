@@ -1,9 +1,38 @@
+/****************************************************
+
+Instructions: 
+1. Ensure that the DHT and HX711 library files are installed correctly.
+2. Wiring set up
+	a. DHT22 data --> D4
+	b. HX711 data --> D2
+	c. HX711 data --> D3
+	d. SIM800L wiring is the same 
+3. 
+
+
+
+*****************************************************/
+
+
+
 #include <SoftwareSerial.h>
 #include <DHT.h>
 #include <HX711.h>
 
+//First test the Arduino code with the line below as is. Then test it with the line below commented out
+#define SIM800_ORIGINAL_CODE
+
+#ifdef SIM800_ORIGINAL_CODE
+	#define		PRINT_VERS()	Serial.println("---\tUsing ORIGINAL CODE\t---")
+#else
+	#define		PRINT_VERS()	Serial.println("---\tUsing DRances' CODE\t---")
+#endif
+
 #define DHTPIN  4
 #define DHTTYPE DHT22
+
+#define SHORT_DELAY		10
+#define	LONG_DELAY		5000
 
 SoftwareSerial Sim800l(8,9); // RX, TX
 DHT dht(DHTPIN, DHTTYPE);
@@ -14,6 +43,8 @@ float dht22_temperature;
 float hx711_lbs;
 float hx711_calib_factor = -7050; //Taken from provided sketch, assumed correct
 String str = "";
+String sim800_response = "";
+float test_value = 100.11;
 
 void setup() {
  // Open serial communications and wait for port to open:
@@ -22,69 +53,41 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  Serial.println("Set up DHT22");
+  Serial.println("Testing sketch for Blake's project");
   dht.begin();
 
-  // set the data rate for the SoftwareSerial port
-  Sim800l.begin(4800);
-  delay(5000);
-  Sim800l.write("AT \n"); 
-  delay(10000); 
-  Sim800l.write("AT+CGATT=1\r\n"); 
-   delay(7000); 
-  if (Sim800l.available() > 0) {
-    Serial.write(Sim800l.read());
-  }
+  setup_sim800();
+  connect_sim800();
   
-  Sim800l.write("AT+CSTT=\"hologram\"\r\n");
-  delay(5000); 
-  if (Sim800l.available() > 0) {
-    Serial.write(Sim800l.read());
-  }
-  
-  
-  Sim800l.write("AT+CIICR\r\n"); 
-  delay(6000); 
-  if (Sim800l.available() > 0) {
-    Serial.write(Sim800l.read());
-  }
-  
-  
- Sim800l.write("AT+CIFSR\r\n"); 
-  delay(5000); 
-  if (Sim800l.available() > 0) {
-    Serial.write(Sim800l.read());
-  }
-  
-  Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
-  delay(5000); 
-  if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
-  
-  Sim800l.write("AT+CIPSEND=39\r\n");
-  delay(5000); 
-  if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
-   
-  Sim800l.write("temperature,device=arduino01 value=84.9\r\n"); 
-  delay(5000); 
-  if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
-  Sim800l.write("AT+CIPSHUT\r\n"); 
-  delay(5000); 
-  if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
+  //Close UDP Context
+  // Sim800l.write("AT+CIPSHUT\r\n"); 
+  // delay(5000); 
+  // if (Sim800l.available()) {
+    // Serial.write(Sim800l.read());
+  // }
 }
+
 void loop() {
-if (Sim800l.available()) {
+/* if (Sim800l.available()) {
     Serial.write(Sim800l.read());
   }
   if (Serial.available()) {
     Sim800l.write(Serial.read());
+  } */
+  Serial.println("Reading HX711 data");
+  getHX711Data();
+  Serial.println("Reading DHT22 data");
+  getDHT22Data();
+  
+  //SIM800 Setup-loop
+  setup_sim800();
+  connect_sim800();
+  sim800_transmit_data();
+  //Close the connection
+  Sim800l.write("AT+CIPSHUT\r\n"); 
+  delay(LONG_DELAY); 
+  if (Sim800l.available()) {
+    Serial.write(Sim800l.read());
   }
 }
 
@@ -96,7 +99,9 @@ if (Sim800l.available()) {
 void getHX711Data() {
   scale.set_scale(hx711_calib_factor);
   hx711_lbs = scale.get_units();
-  
+  str = "HX711 Data: " + String(hx711_lbs);
+  str += "lbs\n\r";
+  Serial.println(str);
 }
 
 /*
@@ -104,8 +109,6 @@ void getHX711Data() {
  * Returns true if data reading is correct
  */
 bool getDHT22Data() {
-  delay(2000);
-  Serial.println("Reading DHT22 device");
   dht22_humidity = dht.readHumidity();
   dht22_temperature = dht.readTemperature(true);
   if (isnan(dht22_humidity) || isnan(dht22_temperature)) {
@@ -118,4 +121,176 @@ bool getDHT22Data() {
   return true;
 }
 
+void setup_sim800() {
+#ifdef SIM800_ORIGINAL_CODE
+	PRINT_VERS();
+	// set the data rate for the SoftwareSerial port
+	Serial.println("SIM800 - set baud rate");
+	Sim800l.begin(4800);
+	delay(5000);
+	Sim800l.write("AT \n"); 
+	delay(10000); 
 
+	//Attach to a GPRS Service
+	Serial.println("SIM800 - attach to GPRS service");
+	Sim800l.write("AT+CGATT=1\r\n"); 
+	delay(7000); 
+	if (Sim800l.available() > 0) {
+		Serial.write(Sim800l.read());
+	}
+	//Set APN = hologram, no user or pw
+	Serial.println("SIM800 - set APN, user, pw");
+	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+	delay(5000); 
+	if (Sim800l.available() > 0) {
+		Serial.write(Sim800l.read());
+	}
+#else 
+	PRINT_VERS();
+	// set the data rate for the SoftwareSerial port
+	Serial.println("SIM800 - set baud rate");
+	Sim800l.begin(4800);
+	delay(5000);
+	Sim800l.write("AT \n");
+	delay(10000); 
+	
+	//Attach to a GPRS Service
+	Serial.println("SIM800 - attach to GPRS service");
+	Sim800l.write("AT+CGATT=1\r\n");
+	delay(SHORT_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+	//Set APN = hologram, no user or pw
+	Serial.println("SIM800 - set APN, user, pw");
+	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+	delay(SHORT_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+#endif
+	
+}
+
+void connect_sim800() {
+	#ifdef SIM800_ORIGINAL_CODE
+	PRINT_VERS();
+	//Set up GPRS Wireless connection
+	Serial.println("Setting up Wireless connection");
+	Sim800l.write("AT+CIICR\r\n"); 
+	delay(6000); 
+	if (Sim800l.available() > 0) {
+		Serial.write(Sim800l.read());
+	}
+
+	//Get local IP --> is this the IP that's passed in +CIPSTART?
+	Serial.println("Setting local IP");
+	Sim800l.write("AT+CIFSR\r\n"); 
+	delay(5000); 
+	if (Sim800l.available() > 0) {
+		Serial.write(Sim800l.read());
+	}
+
+	//Start UDP connection at the address provided, at port 8888
+	Serial.println("Setting up UDP connection at the IP provided");
+	Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
+	delay(5000); 
+	if (Sim800l.available()) {
+		Serial.write(Sim800l.read());
+	}
+	
+#else 
+	PRINT_VERS();
+	//Set up GPRS Wireless connection
+	Serial.println("Setting up Wireless connection");
+	Sim800l.write("AT+CIICR\r\n");
+	delay(LONG_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+	//Get local IP --> is this the IP that's passed in +CIPSTART?
+	Serial.println("Setting local IP");
+	Sim800l.write("AT+CIFSR\r\n"); 
+	delay(LONG_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+	//Start UDP connection at the address provided, at port 8888
+	Serial.println("Setting up UDP connection at the IP provided");
+	Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
+	delay(LONG_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+#endif
+}
+
+void sim800_transmit_data() {
+	String datalen = "AT+CIPSEND=";
+	uint16_t len = 39;
+	
+#ifdef SIM800_ORIGINAL_CODE	
+	//Send data through UDP connection. Need length of data
+	//Is the length supposed to include the \r and the \n?
+	Serial.println("Sending data length");
+	Sim800l.write("AT+CIPSEND=39\r\n");
+	delay(5000); 
+	if (Sim800l.available()) {
+		Serial.write(Sim800l.read());
+	}
+	//Data being sent
+	Serial.println("Sending data");
+	Sim800l.write("temperature,device=arduino01 value=84.9\r\n"); 
+	delay(5000); 
+	if (Sim800l.available()) {
+		Serial.write(Sim800l.read());
+	}
+#else
+	str = "temperature,device=arduino01 value=" + (String)test_value;
+	str += "\n\r";
+	len = str.length();
+	datalen += (String)len + "\r\n";
+	Serial.println("Sending data length");
+	Sim800l.write(datalen);
+	delay(LONG_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+	//Data being sent
+	Serial.println("Sending data");
+	Sim800l.write(str); 
+	delay(LONG_DELAY);
+	while (Sim800l.available() > 0) {
+		sim800_response += (String)Sim800l.read();
+	}
+	Serial.println(sim800_response);
+	sim800_response = "";
+	
+#endif
+}
+
+void test_value_update()
+{
+	if (test_value >= 500.0){
+		test_value = 100.11;
+	} else {
+		test_value += 10.11;
+	}
+}
