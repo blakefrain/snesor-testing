@@ -1,0 +1,44 @@
+data lenght just the data not \r\n
+changed DHT data to D5
+Changed softwareSerial for 9 RX and 8 TX
+Getting the IP is not needed it was just a step to see that it was connected to the network
+the AT+CREG? and AT+CGACT? will have to be used inorder to make sure that it is connected to the network.
+I looked in my sim dashboard and it never made the connection. But this is getting really close.
+
+17:25:07.967 -> Testing sketch for Blake's project
+17:25:07.967 -> ---	Using ORIGINAL CODE	---
+17:25:07.967 -> SIM800 - set baud rate
+17:25:22.988 -> SIM800 - attach to GPRS service
+17:25:30.016 -> SIM800 - set APN, user, pw
+17:25:35.063 -> ---	Using ORIGINAL CODE	---
+17:25:35.063 -> Setting up Wireless connection
+17:25:41.109 -> Setting local IP
+17:25:46.125 -> Setting up UDP connection at the IP provided
+17:25:51.216 -> Reading HX711 data
+17:25:51.216 -> HX711 Data: 0.00lbs
+17:25:51.216 -> 
+17:25:51.216 -> Reading DHT22 data
+17:25:51.250 -> 
+17:25:51.250 -> Temperature = 	74.30
+17:25:51.250 -> ---	Using ORIGINAL CODE	---
+17:25:51.250 -> SIM800 - set baud rate
+17:26:06.264 -> SIM800 - attach to GPRS service
+17:26:13.288 -> SIM800 - set APN, user, pw
+17:26:18.339 -> ---	Using ORIGINAL CODE	---
+17:26:18.339 -> Setting up Wireless connection
+17:26:24.377 -> Setting local IP
+17:26:29.408 -> Setting up UDP connection at the IP provided
+17:26:34.494 -> Sending data length
+17:26:39.509 -> Sending data
+17:26:49.648 -> Reading HX711 data
+17:26:49.648 -> HX711 Data: 0.00lbs
+17:26:49.648 -> 
+17:26:49.648 -> Reading DHT22 data
+17:26:49.648 -> 
+17:26:49.648 -> Temperature = 	73.76
+17:26:49.648 -> ---	Using ORIGINAL CODE	---
+17:26:49.648 -> SIM800 - set baud rate
+17:27:04.675 -> SIM800 - attach to GPRS service
+17:27:11.726 -> SIM800 - set APN, user, pw
+17:27:16.772 -> ---	Using ORIGINAL CODE	---
+17:27:16.772 -> Setting up Wireless connection
