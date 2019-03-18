@@ -265,7 +265,7 @@ void sim800_transmit_data() {
 	len = str.length();
 	datalen += (String)len + "\r\n";
 	Serial.println("Sending data length");
-	Sim800l.write(datalen);
+	Sim800l.write(datalen.c_str());
 	delay(LONG_DELAY);
 	while (Sim800l.available() > 0) {
 		sim800_response += (String)Sim800l.read();
@@ -275,7 +275,7 @@ void sim800_transmit_data() {
 	
 	//Data being sent
 	Serial.println("Sending data");
-	Sim800l.write(str); 
+	Sim800l.write(str.c_str()); 
 	delay(LONG_DELAY);
 	while (Sim800l.available() > 0) {
 		sim800_response += (String)Sim800l.read();
