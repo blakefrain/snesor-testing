@@ -62,8 +62,8 @@ void setup() {
 	sim800_test_comms();
 #endif
 
-  setup_sim800();
-  connect_sim800();
+  //setup_sim800();
+  //connect_sim800();
   
   //Close UDP Context
   // Sim800l.write("AT+CIPSHUT\r\n"); 
@@ -74,7 +74,11 @@ void setup() {
 }
 
 void loop() {
-/* if (Sim800l.available()) {
+#ifdef TEST_COMMS
+	sim800_test_comms();
+	delay(2000);
+#else
+	/* if (Sim800l.available()) {
     Serial.write(Sim800l.read());
   }
   if (Serial.available()) {
@@ -95,6 +99,9 @@ void loop() {
   if (Sim800l.available()) {
     Serial.write(Sim800l.read());
   }
+#endif
+	
+
 }
 
 /*
@@ -303,6 +310,9 @@ void test_value_update()
 
 void sim800_test_comms()
 {
+	sim800_response = "testing the sim800_response\n\r";
+	
+	Serial.println(sim800_response);
 	sim800_response = "";
 	
 	// set the data rate for the SoftwareSerial port
