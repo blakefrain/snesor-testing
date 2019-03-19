@@ -28,7 +28,9 @@ Instructions:
 	#define		PRINT_VERS()	Serial.println("---\tUsing DRances' CODE\t---")
 #endif
 
-#define DHTPIN  4
+#define TEST_COMMS
+
+#define DHTPIN  5
 #define DHTTYPE DHT22
 
 #define SHORT_DELAY		10
@@ -55,6 +57,10 @@ void setup() {
 
   Serial.println("Testing sketch for Blake's project");
   dht.begin();
+  
+#ifdef TEST_COMMS
+	sim800_test_comms();
+#endif
 
   setup_sim800();
   connect_sim800();
@@ -294,3 +300,24 @@ void test_value_update()
 		test_value += 10.11;
 	}
 }
+
+void sim800_test_comms()
+{
+	sim800_response = "";
+	
+	// set the data rate for the SoftwareSerial port
+	Serial.println("SIM800 - set baud rate");
+	Sim800l.begin(4800);
+	delay(5000);
+	Sim800l.write("AT \n");
+	while (!Sim800l.available()) {	}
+	while (Sim800l.available() > 0) {
+		sim800_response += (char)Sim800l.read();
+	}
+	
+	Serial.print("Response from SIM800: ");
+	Serial.println(sim800_response);
+	Serial.println();
+}
+
+
