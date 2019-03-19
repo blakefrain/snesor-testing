@@ -1,0 +1,44 @@
+16:37:44.984 -> Testing sketch for Blake's project
+16:37:44.984 -> SIM800 - set baud rate
+16:37:50.033 -> Response from SIM800: AT 
+16:37:50.033 -> 
+16:37:50.033 -> ---	Using ORIGINAL CODE	---
+16:37:50.033 -> SIM800 - set baud rate
+16:38:05.042 -> SIM800 - attach to GPRS service
+16:38:12.084 -> SIM800 - set APN, user, pw
+16:38:17.134 -> 
+16:38:17.134 -> ---	Using ORIGINAL CODE	---
+16:38:17.134 -> Setting up Wireless connection
+16:38:23.169 -> OSetting local IP
+16:38:28.178 -> KSetting up UDP connection at the IP provided
+16:38:33.295 -> Reading HX711 data
+16:38:33.295 -> HX711 Data: 0.00lbs
+16:38:33.295 -> 
+16:38:33.295 -> Reading DHT22 data
+16:38:33.295 -> 
+16:38:33.295 -> Temperature = 	69.80
+16:38:33.295 -> ---	Using ORIGINAL CODE	---
+16:38:33.295 -> SIM800 - set baud rate
+16:38:48.304 -> SIM800 - attach to GPRS service
+16:38:55.357 -> 
+16:38:55.357 -> SIM800 - set APN, user, pw
+16:39:00.396 -> A---	Using ORIGINAL CODE	---
+16:39:00.396 -> Setting up Wireless connection
+16:39:06.426 -> TSetting local IP
+16:39:11.435 ->  Setting up UDP connection at the IP provided
+16:39:16.552 -> Sending data length
+16:39:21.589 -> 
+16:39:21.589 -> Sending data
+16:39:26.672 -> OKReading HX711 data
+16:39:31.700 -> HX711 Data: 0.00lbs
+16:39:31.700 -> 
+16:39:31.700 -> Reading DHT22 data
+16:39:31.700 -> 
+16:39:31.700 -> Temperature = 	70.16
+16:39:31.700 -> ---	Using ORIGINAL CODE	---
+16:39:31.700 -> SIM800 - set baud rate
+16:39:46.743 -> SIM800 - attach to GPRS service
+16:39:53.762 -> SIM800 - set APN, user, pw
+16:39:58.805 -> 
+16:39:58.805 -> ---	Using ORIGINAL CODE	---
+16:39:58.805 -> Setting up Wireless connection
