@@ -35,7 +35,7 @@ Instructions:
 
 #define SHORT_DELAY		10
 #define	LONG_DELAY		5000
-#define	TIMEOUT			2000
+#define	TIMEOUT			5000
 
 #define	CMD_RESPONSE_OK		0x00
 #define CMD_RESPONSE_OTHER	0x01
@@ -54,7 +54,7 @@ String str = "";
 String sim800_response = "";
 float test_value = 100.11;
 
-uint8_t cmd_status;
+uint8_t cmd_status = 0xFF;
 
 uint32_t tick_start, tick_current;
 
@@ -88,20 +88,12 @@ void loop() {
 	sim800_test_comms();
 	delay(2000);
 #else
-	/* if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
-  if (Serial.available()) {
-    Sim800l.write(Serial.read());
-  } */
+
   Serial.println("Reading HX711 data");
   getHX711Data();
   Serial.println("Reading DHT22 data");
   getDHT22Data();
   
-  //SIM800 Setup-loop
-  setup_sim800();
-  connect_sim800();
   sim800_transmit_data();
 #endif
 	
@@ -139,48 +131,34 @@ bool getDHT22Data() {
 }
 
 void setup_sim800() {
-#ifdef SIM800_ORIGINAL_CODE
-	PRINT_VERS();
-	// set the data rate for the SoftwareSerial port
-	Serial.println("SIM800 - set baud rate");
-	Sim800l.begin(4800);
-	delay(5000);
-	Sim800l.write("AT \n"); 
-	delay(10000); 
 
-	//Attach to a GPRS Service
-	Serial.println("SIM800 - attach to GPRS service");
-	Sim800l.write("AT+CGATT=1\r\n"); 
-	delay(7000); 
-	if (Sim800l.available() > 0) {
-		Serial.write(Sim800l.read());
-	}
-	//Set APN = hologram, no user or pw
-	Serial.println("SIM800 - set APN, user, pw");
-	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
-	delay(5000); 
-	if (Sim800l.available() > 0) {
-		Serial.write(Sim800l.read());
-	}
-#else 
 	PRINT_VERS();
 	// set the data rate for the SoftwareSerial port
 	Serial.println("SIM800 - set baud rate");
 	Sim800l.begin(4800);
 	delay(5000);
-	Sim800l.write("AT \n");
-	handle_sim800_response();
+	
+	//First start AT
+	while (cmd_status != CMD_RESPONSE_OK) {
+		Sim800l.write("AT \n");
+		cmd_status = sim800_cmd_success(TIMEOUT);
+	}
+	
+	cmd_status = 0xFF;
 	
 	//Attach to a GPRS Service
-	Serial.println("SIM800 - attach to GPRS service");
-	Sim800l.write("AT+CGATT=1\r\n");
-	handle_sim800_response();
+	while (cmd_status != CMD_RESPONSE_OK) {
+		Serial.println("SIM800 - attach to GPRS service");
+		Sim800l.write("AT+CGATT=1\r\n");
+		cmd_status = sim800_cmd_success(TIMEOUT);
+	}
 	
 	//Set APN = hologram, no user or pw
-	Serial.println("SIM800 - set APN, user, pw");
-	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
-	handle_sim800_response();
-#endif
+	while (cmd_status != CMD_RESPONSE_OK) {
+		Serial.println("SIM800 - set APN, user, pw");
+		Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+		cmd_status = sim800_cmd_success(TIMEOUT);
+	}
 	
 }
 
@@ -283,23 +261,6 @@ void sim800_transmit_data() {
 	String datalen = "AT+CIPSEND=";
 	uint16_t len = 39;
 	
-#ifdef SIM800_ORIGINAL_CODE	
-	//Send data through UDP connection. Need length of data
-	//Is the length supposed to include the \r and the \n?
-	Serial.println("Sending data length");
-	Sim800l.write("AT+CIPSEND=39\r\n");
-	delay(5000); 
-	if (Sim800l.available()) {
-		Serial.write(Sim800l.read());
-	}
-	//Data being sent
-	Serial.println("Sending data");
-	Sim800l.write("temperature,device=arduino01 value=84.9\r\n"); 
-	delay(5000); 
-	if (Sim800l.available()) {
-		Serial.write(Sim800l.read());
-	}
-#else
 	str = "temperature,device=arduino01 value=" + (String)dht22_temperature;
 	str += "\n\r";
 	len = str.length() - 2;		//Blake said CR and NL characters are not to be counted in len
@@ -313,7 +274,7 @@ void sim800_transmit_data() {
 	Serial.println("Sending data");
 	Sim800l.write(str.c_str()); 
 	handle_sim800_response();
-#endif
+
 }
 
 void test_value_update()
@@ -393,7 +354,7 @@ uint8_t sim800_cmd_success(uint32_t x)
 
 void handle_sim800_response()
 {
-	cmd_status = sim800_cmd_success(4000);	//Wait up to 4 seconds for this
+	cmd_status = sim800_cmd_success(TIMEOUT);	//Wait up to 4 seconds for this
 	switch (cmd_status) {
 		case CMD_RESPONSE_OK:
 			Serial.println("OK received! Command successful");
