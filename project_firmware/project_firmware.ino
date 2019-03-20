@@ -35,6 +35,12 @@ Instructions:
 
 #define SHORT_DELAY		10
 #define	LONG_DELAY		5000
+#define	TIMEOUT			2000
+
+#define	CMD_RESPONSE_OK		0x00
+#define CMD_RESPONSE_OTHER	0x01
+#define	CMD_TIMEOUT 		0x02
+#define CMD_NO_RESPONSE		0x04
 
 SoftwareSerial Sim800l(8,9); // RX, TX
 DHT dht(DHTPIN, DHTTYPE);
@@ -47,6 +53,10 @@ float hx711_calib_factor = -7050; //Taken from provided sketch, assumed correct
 String str = "";
 String sim800_response = "";
 float test_value = 100.11;
+
+uint8_t cmd_status;
+
+uint32_t tick_start, tick_current;
 
 void setup() {
  // Open serial communications and wait for port to open:
@@ -129,7 +139,7 @@ bool getDHT22Data() {
     return false;
   }
   str = "Humidity = \t" + String(dht22_humidity);
-  str = "\n\rTemperature = \t" + String(dht22_temperature);
+  str += "\n\rTemperature = \t" + String(dht22_temperature);
   Serial.println(str);
   return true;
 }
@@ -273,28 +283,30 @@ void sim800_transmit_data() {
 		Serial.write(Sim800l.read());
 	}
 #else
-	str = "temperature,device=arduino01 value=" + (String)test_value;
+	str = "temperature,device=arduino01 value=" + (String)dht22_temperature;
 	str += "\n\r";
-	len = str.length();
+	len = str.length() - 2;		//Blake said CR and NL characters are not to be counted in len
 	datalen += (String)len + "\r\n";
 	Serial.println("Sending data length");
 	Sim800l.write(datalen.c_str());
-	delay(LONG_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
-	}
-	Serial.println(sim800_response);
-	sim800_response = "";
+	//delay(LONG_DELAY);
+	sim800_cmd_success(5000);
+	// while (Sim800l.available() > 0) {
+		// sim800_response += (String)Sim800l.read();
+	// }
+	// Serial.println(sim800_response);
+	// sim800_response = "";
 	
 	//Data being sent
 	Serial.println("Sending data");
 	Sim800l.write(str.c_str()); 
-	delay(LONG_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
-	}
-	Serial.println(sim800_response);
-	sim800_response = "";
+	sim800_cmd_success(5000);
+	// delay(LONG_DELAY);
+	// while (Sim800l.available() > 0) {
+		// sim800_response += (String)Sim800l.read();
+	// }
+	// Serial.println(sim800_response);
+	// sim800_response = "";
 	
 #endif
 }
@@ -320,14 +332,58 @@ void sim800_test_comms()
 	Sim800l.begin(4800);
 	delay(5000);
 	Sim800l.write("AT \n");
-	while (!Sim800l.available()) {	}
+	cmd_status = sim800_cmd_success(1000);	//Wait up to one second for this
+	switch (cmd_status) {
+		case CMD_RESPONSE_OK:
+			Serial.println("OK received! Command successful");
+			break;
+		case CMD_RESPONSE_OTHER:
+			Serial.println("OK not received. SIM800 response ==\t==\t==");
+			Serial.println(sim800_response);
+			Serial.println("\n\r===\t===\t===\t===");
+			break;
+		case CMD_TIMEOUT:
+			Serial.println("Command timed out!");
+			break;
+		case CMD_NO_RESPONSE:
+			Serial.println("SIM800 unresponsive");
+			break;
+	}
+}
+
+uint8_t sim800_cmd_success(uint32_t x) 
+{
+	bool timed_out = false;
+	uint32_t timeout_value = x;
+	tick_start = millis();
+	sim800_response = "";
+	//Wait til data available from SIM800 or til timeout
+	while (!Sim800l.available()) {
+		tick_current = millis();
+		if ((tick_current - tick_start) >= timeout_value) {
+			timed_out = true;
+			break;
+		}
+	}
+	
+	if (timed_out == true) {
+		return CMD_TIMEOUT;
+	}
+	
+	if (Sim800l.available() == 0) {
+		return CMD_NO_RESPONSE;
+	}
+	//At this point, we received data
 	while (Sim800l.available() > 0) {
 		sim800_response += (char)Sim800l.read();
 	}
 	
-	Serial.print("Response from SIM800: ");
-	Serial.println(sim800_response);
-	Serial.println();
+	if (sim800_response.indexOf("OK") >= 0) {
+		return CMD_RESPONSE_OK;
+	} else {
+		return CMD_RESPONSE_OTHER;
+	}
+	
 }
 
 
