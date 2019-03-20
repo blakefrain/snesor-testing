@@ -29,6 +29,7 @@ Instructions:
 #endif
 
 //#define TEST_COMMS
+#define DEBUG_PRINT_RESPONSE
 
 #define DHTPIN  5
 #define DHTTYPE DHT22
@@ -147,18 +148,19 @@ void setup_sim800() {
 	cmd_status = 0xFF;
 	
 	//Attach to a GPRS Service
-	while (cmd_status != CMD_RESPONSE_OK) {
+	//while (cmd_status != CMD_RESPONSE_OK) {
 		Serial.println("SIM800 - attach to GPRS service");
 		Sim800l.write("AT+CGATT=1\r\n");
 		cmd_status = sim800_cmd_success(TIMEOUT);
-	}
+		Serial.println();
+	//}
 	
 	//Set APN = hologram, no user or pw
-	while (cmd_status != CMD_RESPONSE_OK) {
+	//while (cmd_status != CMD_RESPONSE_OK) {
 		Serial.println("SIM800 - set APN, user, pw");
 		Sim800l.write("AT+CSTT=\"hologram\"\r\n");
 		cmd_status = sim800_cmd_success(TIMEOUT);
-	}
+	//}
 	
 }
 
@@ -268,12 +270,14 @@ void sim800_transmit_data() {
 	
 	Serial.println("Sending data length");
 	Sim800l.write(datalen.c_str());
-	handle_sim800_response();
+	cmd_status = sim800_cmd_success(TIMEOUT);
+	//handle_sim800_response();
 
 	//Data being sent
 	Serial.println("Sending data");
 	Sim800l.write(str.c_str()); 
-	handle_sim800_response();
+	cmd_status = sim800_cmd_success(TIMEOUT);
+	//handle_sim800_response();
 
 }
 
@@ -343,6 +347,11 @@ uint8_t sim800_cmd_success(uint32_t x)
 	while (Sim800l.available() > 0) {
 		sim800_response += (char)Sim800l.read();
 	}
+#ifdef DEBUG_PRINT_RESPONSE
+	Serial.print(">>\tSIM800 RESPONSE\t<<\n\r");
+	Serial.print(sim800_response);
+	Serial.print("\n\r>>\t******\t<<\n\r");
+#endif	
 	
 	if (sim800_response.indexOf("OK") >= 0) {
 		return CMD_RESPONSE_OK;
