@@ -28,7 +28,7 @@ Instructions:
 	#define		PRINT_VERS()	Serial.println("---\tUsing DRances' CODE\t---")
 #endif
 
-#define TEST_COMMS
+//#define TEST_COMMS
 
 #define DHTPIN  5
 #define DHTTYPE DHT22
@@ -72,8 +72,8 @@ void setup() {
 	sim800_test_comms();
 #endif
 
-  //setup_sim800();
-  //connect_sim800();
+  setup_sim800();
+  connect_sim800();
   
   //Close UDP Context
   // Sim800l.write("AT+CIPSHUT\r\n"); 
@@ -103,6 +103,7 @@ void loop() {
   setup_sim800();
   connect_sim800();
   sim800_transmit_data();
+  
   //Close the connection
   Sim800l.write("AT+CIPSHUT\r\n"); 
   delay(LONG_DELAY); 
