@@ -20,7 +20,7 @@ Instructions:
 #include <HX711.h>
 
 //First test the Arduino code with the line below as is. Then test it with the line below commented out
-#define SIM800_ORIGINAL_CODE
+//#define SIM800_ORIGINAL_CODE
 
 #ifdef SIM800_ORIGINAL_CODE
 	#define		PRINT_VERS()	Serial.println("---\tUsing ORIGINAL CODE\t---")
@@ -103,13 +103,6 @@ void loop() {
   setup_sim800();
   connect_sim800();
   sim800_transmit_data();
-  
-  //Close the connection
-  Sim800l.write("AT+CIPSHUT\r\n"); 
-  delay(LONG_DELAY); 
-  if (Sim800l.available()) {
-    Serial.write(Sim800l.read());
-  }
 #endif
 	
 
@@ -176,27 +169,17 @@ void setup_sim800() {
 	Sim800l.begin(4800);
 	delay(5000);
 	Sim800l.write("AT \n");
-	delay(10000); 
+	handle_sim800_response();
 	
 	//Attach to a GPRS Service
 	Serial.println("SIM800 - attach to GPRS service");
 	Sim800l.write("AT+CGATT=1\r\n");
-	delay(SHORT_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
-	}
-	Serial.println(sim800_response);
-	sim800_response = "";
+	handle_sim800_response();
 	
 	//Set APN = hologram, no user or pw
 	Serial.println("SIM800 - set APN, user, pw");
 	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
-	delay(SHORT_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
-	}
-	Serial.println(sim800_response);
-	sim800_response = "";
+	handle_sim800_response();
 #endif
 	
 }
@@ -233,32 +216,65 @@ void connect_sim800() {
 	//Set up GPRS Wireless connection
 	Serial.println("Setting up Wireless connection");
 	Sim800l.write("AT+CIICR\r\n");
-	delay(LONG_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
+	cmd_status = sim800_cmd_success(4000);	//Wait up to one second for this
+	switch (cmd_status) {
+		case CMD_RESPONSE_OK:
+			Serial.println("OK received! Command successful");
+			break;
+		case CMD_RESPONSE_OTHER:
+			Serial.println("OK not received. SIM800 response ==\t==\t==");
+			Serial.println(sim800_response);
+			Serial.println("\n\r===\t===\t===\t===");
+			break;
+		case CMD_TIMEOUT:
+			Serial.println("Command timed out!");
+			break;
+		case CMD_NO_RESPONSE:
+			Serial.println("SIM800 unresponsive");
+			break;
 	}
-	Serial.println(sim800_response);
-	sim800_response = "";
 	
 	//Get local IP --> is this the IP that's passed in +CIPSTART?
 	Serial.println("Setting local IP");
 	Sim800l.write("AT+CIFSR\r\n"); 
-	delay(LONG_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
+	cmd_status = sim800_cmd_success(4000);	//Wait up to one second for this
+	switch (cmd_status) {
+		case CMD_RESPONSE_OK:
+			Serial.println("OK received! Command successful");
+			break;
+		case CMD_RESPONSE_OTHER:
+			Serial.println("OK not received. SIM800 response ==\t==\t==");
+			Serial.println(sim800_response);
+			Serial.println("\n\r===\t===\t===\t===");
+			break;
+		case CMD_TIMEOUT:
+			Serial.println("Command timed out!");
+			break;
+		case CMD_NO_RESPONSE:
+			Serial.println("SIM800 unresponsive");
+			break;
 	}
-	Serial.println(sim800_response);
-	sim800_response = "";
 	
 	//Start UDP connection at the address provided, at port 8888
 	Serial.println("Setting up UDP connection at the IP provided");
 	Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
-	delay(LONG_DELAY);
-	while (Sim800l.available() > 0) {
-		sim800_response += (String)Sim800l.read();
+	cmd_status = sim800_cmd_success(5000);	//Wait up to one second for this
+	switch (cmd_status) {
+		case CMD_RESPONSE_OK:
+			Serial.println("OK received! Command successful");
+			break;
+		case CMD_RESPONSE_OTHER:
+			Serial.println("OK not received. SIM800 response ==\t==\t==");
+			Serial.println(sim800_response);
+			Serial.println("\n\r===\t===\t===\t===");
+			break;
+		case CMD_TIMEOUT:
+			Serial.println("Command timed out!");
+			break;
+		case CMD_NO_RESPONSE:
+			Serial.println("SIM800 unresponsive");
+			break;
 	}
-	Serial.println(sim800_response);
-	sim800_response = "";
 	
 #endif
 }
@@ -288,27 +304,15 @@ void sim800_transmit_data() {
 	str += "\n\r";
 	len = str.length() - 2;		//Blake said CR and NL characters are not to be counted in len
 	datalen += (String)len + "\r\n";
+	
 	Serial.println("Sending data length");
 	Sim800l.write(datalen.c_str());
-	//delay(LONG_DELAY);
-	sim800_cmd_success(5000);
-	// while (Sim800l.available() > 0) {
-		// sim800_response += (String)Sim800l.read();
-	// }
-	// Serial.println(sim800_response);
-	// sim800_response = "";
-	
+	handle_sim800_response();
+
 	//Data being sent
 	Serial.println("Sending data");
 	Sim800l.write(str.c_str()); 
-	sim800_cmd_success(5000);
-	// delay(LONG_DELAY);
-	// while (Sim800l.available() > 0) {
-		// sim800_response += (String)Sim800l.read();
-	// }
-	// Serial.println(sim800_response);
-	// sim800_response = "";
-	
+	handle_sim800_response();
 #endif
 }
 
@@ -387,4 +391,23 @@ uint8_t sim800_cmd_success(uint32_t x)
 	
 }
 
-
+void handle_sim800_response()
+{
+	cmd_status = sim800_cmd_success(4000);	//Wait up to 4 seconds for this
+	switch (cmd_status) {
+		case CMD_RESPONSE_OK:
+			Serial.println("OK received! Command successful");
+			break;
+		case CMD_RESPONSE_OTHER:
+			Serial.println("OK not received. SIM800 response ==\t==\t==");
+			Serial.println(sim800_response);
+			Serial.println("\n\r===\t===\t===\t===");
+			break;
+		case CMD_TIMEOUT:
+			Serial.println("Command timed out!");
+			break;
+		case CMD_NO_RESPONSE:
+			Serial.println("SIM800 unresponsive");
+			break;
+	}
+}
