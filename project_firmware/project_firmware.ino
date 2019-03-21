@@ -90,15 +90,14 @@ void loop() {
 	delay(2000);
 #else
 
-  Serial.println("Reading HX711 data");
-  getHX711Data();
-  Serial.println("Reading DHT22 data");
-  getDHT22Data();
-  
+  //Serial.println("Reading HX711 data");
+  //getHX711Data();
+  //Serial.println("Reading DHT22 data");
+  //getDHT22Data();
+  dht22_temperature = test_value;
   sim800_transmit_data();
+  test_value_update();
 #endif
-	
-
 }
 
 /*
@@ -260,16 +259,16 @@ void connect_sim800() {
 }
 
 void sim800_transmit_data() {
-	String datalen = "AT+CIPSEND=";
+	String cmd = "AT+CIPSEND=";
 	uint16_t len = 39;
 	
 	str = "temperature,device=arduino01 value=" + (String)dht22_temperature;
 	str += "\n\r";
 	len = str.length() - 2;		//Blake said CR and NL characters are not to be counted in len
-	datalen += (String)len + "\r\n";
+	cmd += (String)len + "\r\n";
 	
 	Serial.println("Sending data length");
-	Sim800l.write(datalen.c_str());
+	Sim800l.write(cmd.c_str());
 	cmd_status = sim800_cmd_success(TIMEOUT);
 	//handle_sim800_response();
 
