@@ -94,7 +94,7 @@ void getHX711Data() {
   scale.set_scale(hx711_calib_factor);
   hx711_lbs = scale.get_units();
   str = "HX711 Data: " + String(hx711_lbs);
-  str += "lbs\n\r";
+  str += "lbs\r\n";
   Serial.println(str);
 }
 
@@ -110,7 +110,7 @@ bool getDHT22Data() {
     return false;
   }
   str = "Humidity = \t" + String(dht22_humidity);
-  str += "\n\rTemperature = \t" + String(dht22_temperature);
+  str += "\r\nTemperature = \t" + String(dht22_temperature);
   Serial.println(str);
   return true;
 }
@@ -120,7 +120,7 @@ void sim800_transmit_data() {
 	uint16_t len = 39;
 	
 	str = "temperature,device=arduino01 value=" + (String)dht22_temperature;
-	str += "\n\r";
+	str += "\r\n";
 	len = str.length() - 2;		//Blake said CR and NL characters are not to be counted in len
 	cmd += (String)len + "\r\n";
 	
@@ -175,11 +175,11 @@ uint8_t sim800_cmd_success(uint32_t x)
 		sim800_response += (char)Sim800l.read();
 	}
 #ifdef DEBUG_PRINT_RESPONSE
-	//Serial.print(">>\tSIM800 RESPONSE\t<<\n\r");
+	//Serial.print(">>\tSIM800 RESPONSE\t<<\r\n");
 	Serial.println();
 	Serial.print(sim800_response);
 	Serial.println();
-	//Serial.print("\n\r>>\t******\t<<\n\r");
+	//Serial.print("\r\n>>\t******\t<<\r\n");
 #endif	
 	
 	if (sim800_response.indexOf("OK") >= 0) {
@@ -200,7 +200,7 @@ void handle_sim800_response()
 		case CMD_RESPONSE_OTHER:
 			Serial.println("OK not received. SIM800 response ==\t==\t==");
 			Serial.println(sim800_response);
-			Serial.println("\n\r===\t===\t===\t===");
+			Serial.println("\r\n===\t===\t===\t===");
 			break;
 		case CMD_TIMEOUT:
 			Serial.println("Command timed out!");
@@ -217,34 +217,34 @@ void menu_handler(char c)
 	
 	switch (c) {
 		case '0':	//Check the HW connection between Arduino and SIM800L
-			Sim800l.write("AT\n\r");
+			Sim800l.write("AT\r\n");
 			break;
 		case '1':	//Check RF signal quality
-			Sim800l.write("AT+CSQ\n\r");
+			Sim800l.write("AT+CREG?\r\n");
 			break;	
 		case '2':	//Establish connection
-			//Sim800l.write("AT+CGATT=1;+CSTT=\"hologram\";+CIICR\n\r");
-			Sim800l.write("AT+CGATT=1\n\r");
+			//Sim800l.write("AT+CGATT=1;+CSTT=\"hologram\";+CIICR\r\n");
+			Sim800l.write("AT+CGATT=1\r\n");
 			delay(1000);
 			sim800_cmd_success(500);
-			Sim800l.write("AT+CSTT=\"hologram\"\n\r");
+			Sim800l.write("AT+CSTT=\"hologram\"\r\n");
 			delay(1000);
 			sim800_cmd_success(500);
-			Sim800l.write("AT+CIICR\n\r");
+			Sim800l.write("AT+CIICR\r\n");
 			break;
 		case '3':	//Start UDP connection
 			Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
 			break;
 		case '4':	//End the PDP connection
-			Sim800l.write("AT+CIPSHUT\n\r");
+			Sim800l.write("AT+CIPSHUT\r\n");
 			break;		
 		case '5':	//Send data length
 			test_value_update();
 			str = "temperature,device=arduino01 value=" + (String)test_value;
 			data_len = str.length();
-			str += "\n\r";
+			str += "\r\n";
 			sim800_response = "AT+CIPSEND=" + (String)data_len;
-			sim800_response += "\n\r";
+			sim800_response += "\r\n";
 			Sim800l.write(sim800_response.c_str());
 			break;
 		case '6':	//Now send payload
@@ -252,7 +252,7 @@ void menu_handler(char c)
 			str = "";
 			break;
 		case '7':	//Check IP status
-			Sim800l.write("AT+CIPSTATUS\n\r");
+			Sim800l.write("AT+CGACT?\r\n");
 			break;
 	}
 	sim800_cmd_success(3000);
