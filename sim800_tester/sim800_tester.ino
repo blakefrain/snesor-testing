@@ -238,6 +238,9 @@ void menu_handler(char c)
 			Sim800l.write(str.c_str());
 			str = "";
 			break;
+		case '7':	//Check IP status
+			Sim800l.write("AT+CIPSTATUS\n\r");
+			break;
 	}
 	sim800_cmd_success(3000);
 }
