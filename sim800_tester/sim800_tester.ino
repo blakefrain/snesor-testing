@@ -152,6 +152,7 @@ uint8_t sim800_cmd_success(uint32_t x)
 	sim800_response = "";
 	//Wait til data available from SIM800 or til timeout
 	while (!Sim800l.available()) {
+		delayMicroseconds(10);
 		tick_current = millis();
 		if ((tick_current - tick_start) >= timeout_value) {
 			timed_out = true;
@@ -171,9 +172,11 @@ uint8_t sim800_cmd_success(uint32_t x)
 		sim800_response += (char)Sim800l.read();
 	}
 #ifdef DEBUG_PRINT_RESPONSE
-	Serial.print(">>\tSIM800 RESPONSE\t<<\n\r");
+	//Serial.print(">>\tSIM800 RESPONSE\t<<\n\r");
+	Serial.println();
 	Serial.print(sim800_response);
-	Serial.print("\n\r>>\t******\t<<\n\r");
+	Serial.println();
+	//Serial.print("\n\r>>\t******\t<<\n\r");
 #endif	
 	
 	if (sim800_response.indexOf("OK") >= 0) {
