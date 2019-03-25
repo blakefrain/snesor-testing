@@ -254,6 +254,9 @@ void menu_handler(char c)
 		case '7':	//Check IP status
 			Sim800l.write("AT+CGACT?\r\n");
 			break;
+		case '8':	//Check GPRS status
+			Sim800l.write("AT+CGATT?\r\n");
+			break;
 	}
 	sim800_cmd_success(3000);
 }
