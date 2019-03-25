@@ -34,6 +34,8 @@ Instructions:
 #define DHTPIN  5
 #define DHTTYPE DHT22
 
+#define SIM800_BAUD		9600
+
 #define SHORT_DELAY		10
 #define	LONG_DELAY		5000
 #define	TIMEOUT			5000
@@ -67,7 +69,7 @@ void setup() {
 	Serial.println("Testing sketch for Blake's project");
 	dht.begin();
 
-	Sim800l.begin(4800);
+	Sim800l.begin(SIM800_BAUD);
 
 }
 
@@ -168,6 +170,7 @@ uint8_t sim800_cmd_success(uint32_t x)
 		return CMD_NO_RESPONSE;
 	}
 	//At this point, we received data
+	delay(5);
 	while (Sim800l.available() > 0) {
 		sim800_response += (char)Sim800l.read();
 	}
@@ -220,7 +223,14 @@ void menu_handler(char c)
 			Sim800l.write("AT+CSQ\n\r");
 			break;	
 		case '2':	//Establish connection
-			Sim800l.write("AT+CGATT=1;+CSTT=\"hologram\";+CIICR\n\r");
+			//Sim800l.write("AT+CGATT=1;+CSTT=\"hologram\";+CIICR\n\r");
+			Sim800l.write("AT+CGATT=1\n\r");
+			delay(1000);
+			sim800_cmd_success(500);
+			Sim800l.write("AT+CSTT=\"hologram\"\n\r");
+			delay(1000);
+			sim800_cmd_success(500);
+			Sim800l.write("AT+CIICR\n\r");
 			break;
 		case '3':	//Start UDP connection
 			Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
