@@ -255,8 +255,20 @@ void menu_handler(char c)
 			Sim800l.write("AT+CGACT?\r\n");
 			break;
 		case '8':	//Check GPRS status
+			Sim800l.write("AT+CIFSR\r\n");
+			delay(1000);
+			sim800_cmd_success(500);
 			Sim800l.write("AT+CGATT?\r\n");
 			break;
 	}
 	sim800_cmd_success(3000);
 }
+
+
+
+
+
+
+
+
+//EOF
