@@ -213,7 +213,7 @@ void handle_sim800_response()
 
 void combined_setup_fn(void)
 {
-	uint8_t result = 0xFF;
+	uint8_t result = 30;
 	
 	Sim800l.write("AT\r\n");
 	sim800_cmd_success(500);
@@ -222,8 +222,9 @@ void combined_setup_fn(void)
 	do {	
 		Sim800l.write("AT+CGATT=1\r\n");
 		delay(1000);
-		result = sim800_cmd_success(1000);
-	} while (result != CMD_RESPONSE_OK);
+		sim800_cmd_success(1000);
+		result--;
+	} while (result > 0);
 	
 	Sim800l.write("AT+CGATT?\r\n");
 	delay(500);
