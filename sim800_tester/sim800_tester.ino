@@ -211,26 +211,55 @@ void handle_sim800_response()
 	}
 }
 
+void combined_setup_fn(void)
+{
+	uint8_t result = 0xFF;
+	
+	Sim800l.write("AT\r\n");
+	sim800_cmd_success(500);
+	
+	Serial.println("Going to try attaching to GPRS service");
+	do {	
+		Sim800l.write("AT+CGATT=1\r\n");
+		delay(1000);
+		sim800_cmd_success(1000);
+	} while (result != CMD_RESPONSE_OK);
+	
+	Sim800l.write("AT+CGATT?\r\n");
+	delay(500);
+	sim800_cmd_success(1000);
+	
+	Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+	delay(1000);
+	sim800_cmd_success(500);
+	Sim800l.write("AT+CIICR\r\n");
+	delay(1000);
+	sim800_cmd_success(500);
+	
+	Serial.println("Ok, all good. Please type 3 in 3 seconds");
+}
+
 void menu_handler(char c)
 {
 	uint16_t data_len = 0;
 	
 	switch (c) {
 		case '0':	//Check the HW connection between Arduino and SIM800L
-			Sim800l.write("AT\r\n");
+			//Sim800l.write("AT\r\n");
+			combined_setup_fn();
 			break;
 		case '1':	//Check RF signal quality
 			Sim800l.write("AT+CREG?\r\n");
 			break;	
 		case '2':	//Establish connection
 			//Sim800l.write("AT+CGATT=1;+CSTT=\"hologram\";+CIICR\r\n");
-			Sim800l.write("AT+CGATT=1\r\n");
-			delay(1000);
-			sim800_cmd_success(500);
-			Sim800l.write("AT+CSTT=\"hologram\"\r\n");
-			delay(1000);
-			sim800_cmd_success(500);
-			Sim800l.write("AT+CIICR\r\n");
+			// Sim800l.write("AT+CGATT=1\r\n");
+			// delay(1000);
+			// sim800_cmd_success(500);
+			// Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+			// delay(1000);
+			// sim800_cmd_success(500);
+			// Sim800l.write("AT+CIICR\r\n");
 			break;
 		case '3':	//Start UDP connection
 			Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
