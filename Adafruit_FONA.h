@@ -158,6 +158,7 @@ class Adafruit_FONA : public FONAStreamType {
   boolean UDPclose(void);
   boolean UDPconnected(void);
   boolean UDPsend(char *packet, uint8_t len);
+  boolean UDPactivatePDP(void);
   //uint16_t TCPavailable(void);
   //uint16_t TCPread(uint8_t *buff, uint8_t len);
 
