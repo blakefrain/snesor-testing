@@ -1480,8 +1480,8 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
   DEBUG_PRINT(port);
   DEBUG_PRINTLN(F("\""));
 
-  mySerial->print(F("AT+CGACT=1"));
-  if (! expectReply(ok_reply)) return false;
+  //mySerial->print(F("AT+CGACT=1"));
+  //if (! expectReply(ok_reply)) return false;
   
   mySerial->print(F("AT+CIPSTART=\"UDP\",\""));
   mySerial->print(server);
@@ -1494,6 +1494,15 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
 
   // looks like it was a success (?)
   return true;
+}
+
+boolean Adafruit_FONA::UDPactivatePDP(void) {
+	DEBUG_PRINTLN(F("AT+CGACT=0,1"));
+
+	// open GPRS context
+    if (! sendCheckReply(F("AT+CGACT=0,1"), ok_reply, 30000))
+      return false;
+	return true;
 }
 
 boolean Adafruit_FONA::UDPclose(void) {

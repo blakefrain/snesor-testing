@@ -72,7 +72,7 @@ void setup() {
   // can be removed, but APN is required.
   fona.setGPRSNetworkSettings(F("hologram"), F(""), F(""));
   fona.enableGPRS(true);
-  
+  fona.UDPactivatePDP();
   Serial.println("Trying to establish UDP connection");
   for (uint8_t i = 0; i < 10; i++) {
 	if (!fona.UDPconnect("73.230.127.71", 8888)) {
