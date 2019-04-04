@@ -1480,7 +1480,9 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
   DEBUG_PRINT(port);
   DEBUG_PRINTLN(F("\""));
 
-
+  mySerial->print(F("AT+CGACT=1"));
+  if (! expectReply(ok_reply)) return false;
+  
   mySerial->print(F("AT+CIPSTART=\"UDP\",\""));
   mySerial->print(server);
   mySerial->print(F("\",\""));
