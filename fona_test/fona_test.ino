@@ -83,6 +83,17 @@ void setup() {
 	}
   }
   
+  Serial.println("Check our status");
+  if (fona.UDPconnected()) {
+	  Serial.println("We're good");
+	  /*
+	  Serial.println("Now let's try sending");
+	  fona.UDPsend("temperature,device=arduino01 value=111.1");
+	  */
+  } else {
+	  Serial.println("Not connected");
+  }
+  
 }
 
 void loop() {
