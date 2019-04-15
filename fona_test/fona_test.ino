@@ -84,7 +84,7 @@ void setup() {
   
   Serial.println("Check our PDP status");
   fona.PDPstatus();
-  
+  /*
   Serial.println("Trying to establish UDP connection");
   for (uint8_t i = 0; i < 3; i++) {
 	if (!fona.UDPconnect("73.230.127.71", 8888)) {
@@ -107,7 +107,7 @@ void setup() {
   } else {
 	  Serial.println("Not connected");
   }
-  
+  */
 }
 
 void loop() {
