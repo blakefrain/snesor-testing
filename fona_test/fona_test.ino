@@ -73,6 +73,10 @@ void setup() {
   fona.setGPRSNetworkSettings(F("hologram"), F(""), F(""));
   fona.enableGPRS(true);
   fona.UDPactivatePDP();
+  
+  Serial.println("Check our PDP status");
+  fona.PDPstatus();
+  
   Serial.println("Trying to establish UDP connection");
   for (uint8_t i = 0; i < 10; i++) {
 	if (!fona.UDPconnect("73.230.127.71", 8888)) {
@@ -85,7 +89,7 @@ void setup() {
 	}
   }
   
-  Serial.println("Check our status");
+  Serial.println("Check our UDP status");
   if (fona.UDPconnected()) {
 	  Serial.println("We're good");
 	  
