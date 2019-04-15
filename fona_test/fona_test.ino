@@ -73,6 +73,10 @@ void setup() {
   fona.setGPRSNetworkSettings(F("hologram"), F(""), F(""));
   fona.enableGPRS(true);
   fona.GPRSstate();
+  
+  Serial.println("Waiting 5 seconds before attempt ATT again");
+  delay(5000);
+  
   fona.enableGPRS(true);
   fona.GPRSstate();
   
