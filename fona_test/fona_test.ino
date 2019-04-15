@@ -75,7 +75,7 @@ void setup() {
   for (uint8_t i = 0; i < 10; i++) {
 		delay(2000);
 		fona.enableGPRS(true);
-		if (fona.GPRSstate() == 1) {
+		if (fona.GPRSstate() == '1') {
 			break;
 		} 
   }
