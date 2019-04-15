@@ -71,14 +71,14 @@ void setup() {
   // and password values.  Username and password are optional and
   // can be removed, but APN is required.
   fona.setGPRSNetworkSettings(F("hologram"), F(""), F(""));
-  fona.enableGPRS(true);
-  fona.GPRSstate();
   
-  Serial.println("Waiting 5 seconds before attempt ATT again");
-  delay(5000);
-  
-  fona.enableGPRS(true);
-  fona.GPRSstate();
+  for (uint8_t i = 0; i < 10; i++) {
+		delay(2000);
+		fona.enableGPRS(true);
+		if (fona.GPRSstate() == 1) {
+			break;
+		} 
+  }
   
   fona.UDPactivatePDP();
   
