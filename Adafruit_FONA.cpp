@@ -1465,10 +1465,10 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
   flushInput();
 
   // close all old connections
-  if (! sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000) ) return false;
+  //if (! sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000) ) return false;
 
   // single connection at a time
-  if (! sendCheckReply(F("AT+CIPMUX=0"), ok_reply) ) return false;
+  //if (! sendCheckReply(F("AT+CIPMUX=0"), ok_reply) ) return false;
 
   // manually read data
   if (! sendCheckReply(F("AT+CIPRXGET=1"), ok_reply) ) return false;
