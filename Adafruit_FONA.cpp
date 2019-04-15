@@ -1497,10 +1497,10 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
 }
 
 boolean Adafruit_FONA::UDPactivatePDP(void) {
-	DEBUG_PRINTLN(F("AT+CGACT=1"));
+	DEBUG_PRINTLN(F("AT+CGACT=1,1"));
 
 	// open GPRS context
-    if (! sendCheckReply(F("AT+CGACT=1"), ok_reply, 30000))
+    if (! sendCheckReply(F("AT+CGACT=1,1"), ok_reply, 30000))
       return false;
 	return true;
 }
