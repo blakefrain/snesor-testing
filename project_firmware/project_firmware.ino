@@ -23,6 +23,7 @@ Instructions:
 
 //#define TEST_COMMS
 #define DEBUG_PRINT_RESPONSE
+//#define ECHO_TEST
 
 #ifdef DEBUG_PRINT_RESPONSE
 	#define	DBG_PRINT(x)	Serial.print(x)
@@ -56,7 +57,8 @@ String str = "";
 String sim800_response = "";
 float test_value = 100.11;
 
-char response_buf[64] = { 0 };
+char response_buf[128] = { 0 };
+char input_buf[128] = { 0 };
 
 uint8_t cmd_status = 0xFF;
 
@@ -65,19 +67,29 @@ uint32_t tick_start, tick_current;
 void setup() {
  // Open serial communications and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-
+  //while (!Serial) {
+    //; // wait for serial port to connect. Needed for native USB port only
+  //}
+	delay(2000);
   Serial.println("Testing sketch for Blake's project");
   dht.begin();
   
-#ifdef TEST_COMMS
+  Sim800l.begin(4800);
+	Serial.println("SIM800 - set baud rate");
+	Sim800l.begin(9600);
+	sim800_read_wait(9000);
+	Serial.println("Inout from SIM800");
+	Serial.println(response_buf);
+	//delay(2000);
+	sim800_getReply("AT", 10000);
+	sim800_getReply("ATE0", 9000);
 	sim800_test_comms();
-#endif
-
-  setup_sim800();
-  connect_sim800();
+	setup_sim800();
+	connect_sim800();
+  
+  //dht22_temperature = test_value;
+  sim800_transmit_data();
+  //test_value_update();
   
   //Close UDP Context
   // Sim800l.write("AT+CIPSHUT\r\n"); 
@@ -88,14 +100,17 @@ void setup() {
 }
 
 void loop() {
+	uint8_t x = 0, y = 0;
+	char read_in;
+	//sim800_transmit_data();
   //Serial.println("Reading HX711 data");
   //getHX711Data();
   //Serial.println("Reading DHT22 data");
   //getDHT22Data();
-  dht22_temperature = test_value;
-  sim800_transmit_data();
-  test_value_update();
-
+	/* if (Serial.available()) {
+		Serial.read();
+		setup_sim800();
+	} */
 }
 
 /*
@@ -129,31 +144,36 @@ bool getDHT22Data() {
 }
 
 void setup_sim800() {
-	// set the data rate for the SoftwareSerial port
-	Serial.println("SIM800 - set baud rate");
-	Sim800l.begin(4800);
-	delay(2000);
-	sim800_getReply("AT", 1000);
-	
+
+	//Attach to GPRS service
+	Serial.println("Attaching to GPRS service");
+	sim800_getReply("AT+CGATT=1", 8000);
 	
 	//Attach to GPRS service
 	Serial.println("Attaching to GPRS service");
-	sim800_getReply("AT+CGATT=1", 5000);
+	sim800_getReply("AT+CGATT?", 8000);
+	
+	//Attach to GPRS service
+	Serial.println("Check status");
+	sim800_getReply("AT+CGACT?", 8000);
+	
+	
+	Serial.println("Exiting setup_sim800");
 	
 	//Set APN = hologram, no user or pw
-	Serial.println("SIM800 - set APN, user, pw");
-	sim800_getReply("AT+CSTT=\"hologram\"", 1000);
+	//Serial.println("SIM800 - set APN, user, pw");
+	//sim800_getReply("AT+CSTT=\"hologram\"", 8000);
 	
 }
 
 void connect_sim800() {
 	//Set up GPRS Wireless connection
 	Serial.println("Setting up Wireless connection");
-	sim800_getReply("AT+CIICR", 2000);
+	sim800_getReply("AT+CIICR", 8000);
 	
 	//Get local IP --> is this the IP that's passed in +CIPSTART?
 	Serial.println("Setting local IP");
-	sim800_getReply("AT+CIFSR", 2000);
+	sim800_getReply("AT+CIFSR", 8000);
 	
 	//Start UDP connection at the address provided, at port 8888
 	Serial.println("Setting up UDP connection at the IP provided");
@@ -171,14 +191,14 @@ void sim800_transmit_data() {
 	cmd += (String)len + "\r";
 	
 	Serial.println("Sending data length");
-	sim800_getReply(cmd.c_str(), 5000);
+	sim800_getReply(cmd.c_str(), 9000);
 	//Sim800l.write(cmd.c_str());
 	//cmd_status = sim800_cmd_success(TIMEOUT);
 	//handle_sim800_response();
 
 	//Data being sent
 	Serial.println("Sending data");
-	sim800_getReply(str.c_str(), 5000);
+	sim800_getReply(str.c_str(), 9000);
 	//Sim800l.write(str.c_str()); 
 	//cmd_status = sim800_cmd_success(TIMEOUT);
 	//handle_sim800_response();
@@ -197,10 +217,14 @@ void test_value_update()
 void sim800_test_comms()
 {	
 	// set the data rate for the SoftwareSerial port
-	Serial.println("SIM800 - set baud rate");
-	Sim800l.begin(4800);
-	delay(2000);
-	sim800_getReply("AT", 1000);
+	//Serial.println("SIM800 - set baud rate");
+	//Sim800l.begin(4800);
+	//delay(2000);
+	sim800_getReply("AT", 3000);
+	
+	sim800_getReply("ATI", 3000);
+	
+	sim800_getReply("AT&V", 5000);
 }
 
 //Similarly structure to Adafruit_FONA readline
@@ -212,7 +236,8 @@ uint8_t sim800_read(uint16_t timeout)
 	while (timeout--) {
 		while (Sim800l.available()) {
 			read_in = Sim800l.read();
-			if (read_in == '\r') continue;
+			//if (read_in == '\r') continue;
+			//if (read_in == '\n') continue;
 			response_buf[index++] = read_in;
 		}
 		
@@ -223,8 +248,33 @@ uint8_t sim800_read(uint16_t timeout)
 	}
 	
 	response_buf[index] = 0;
-	
 	return index;
+	
+}
+
+//Similarly structure to Adafruit_FONA readline
+uint8_t sim800_read_wait(uint16_t timeout) 
+{
+	char read_in;
+	uint8_t index = 0;
+	
+	while (timeout--) {
+		while (Sim800l.available()) {
+			read_in = Sim800l.read();
+			//if (read_in == '\r') continue;
+			//if (read_in == '\n') continue;
+			response_buf[index++] = read_in;
+		}
+		
+		if (timeout == 0) {
+			break;
+		}
+		delay(1);
+	}
+	
+	//response_buf[index] = 0;
+	return index;
+	
 }
 
 //Modeled after getReply from Adafruit_FONA
@@ -232,14 +282,16 @@ uint8_t sim800_getReply(char* send, uint16_t timeout)
 {
 	Sim800l.flush();
 	
-	DBG_PRINT("\tSENT:: "); 
+	DBG_PRINT("SENT:: "); 
 	DBG_PRINTLN(send);
 	
-	Sim800l.println(send);
+	//Sim800l.println(send);
+	Sim800l.write(send);
+	Sim800l.write('\n\r');
 	
 	uint8_t len = sim800_read(timeout);
 	
-	DBG_PRINT("\tRCVD:: ");
+	DBG_PRINT("RCVD:: ");
 	DBG_PRINTLN(response_buf);
 	
 	return len;
