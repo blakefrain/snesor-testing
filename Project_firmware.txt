@@ -1,0 +1,62 @@
+Inout from SIM800
+
+SENT:: AT
+RCVD:: AT
+OK
+
+SENT:: ATE0
+RCVD:: ATE0
+OK
+
+SENT:: AT
+RCVD::
+OK
+
+SENT:: ATI
+RCVD::
+SIM800 R13.08
+
+OK
+
+SENT:: AT&V
+RCVD::
+DEFAULT PROFIL&
+S0: 0
+S3: 13
+S4: 10
+S5: 8
+S6: 2
+S7: 60
+S8: 2
+S10: 15
++CBST: 7,0,1
++CRLP: 61,61,48,6
+V: 1
+E: 1
+Q:  !
+     X
+Attaching to GPRS service
+SENT:: AT+CGATT=1
+RCVD::
+Attaching to GPRS service
+SENT:: AT+CGATT?
+RCVD::
+Check status
+SENT:: AT+CGACT?
+RCVD::
+Exiting setup_sim800
+Setting up Wireless connection
+SENT:: AT+CIICR
+RCVD::
+Setting local IP
+SENT:: AT+CIFSR
+RCVD::
+Setting up UDP connection at the IP provided
+SENT:: AT+CIPSTART="UDP","73.230.127.71","8888"
+RCVD::
+Sending data length
+SENT:: AT+CIPSEND=39
+RCVD::
+Sending data
+SENT:: temperature,device=arduino01 value=0.00
+RCVD::

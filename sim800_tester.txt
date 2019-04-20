@@ -1,0 +1,17 @@
+AT+CGATT=1
+AAT+CSTT=hologram
+TAT+CIICR
+ AT+CIFSR
+AT+CIPSTART="UDP","73.230.127.71","8888"
+
+OKFailed to read from DHT sensor!
+HX711 Data: 0.00lbs
+
+Sending data length
+Sending data
+
+Failed to read from DHT sensor!
+HX711 Data: 0.00lbs
+
+Sending data length
+ASending data
