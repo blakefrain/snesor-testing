@@ -3,7 +3,7 @@
 Instructions: 
 1. Ensure that the DHT and HX711 library files are installed correctly.
 2. Wiring set up
-	a. DHT22 data --> D4
+	a. DHT22 data --> D6
 	b. HX711 data --> D2
 	c. HX711 data --> D3
 	d. SIM800L wiring is the same 
@@ -17,7 +17,7 @@ Instructions:
 #include <DHT.h>
 #include <HX711.h>
 
-#define DHTPIN  5
+#define DHTPIN  6
 #define DHTTYPE DHT22
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -43,6 +43,8 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
+  dht.begin();
+  
   // set the data rate for the SoftwareSerial port
   Sim800l.begin(4800);
   delay(5000);
