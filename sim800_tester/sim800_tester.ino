@@ -102,9 +102,9 @@ void setup() {
 }
 void loop() {
 	getDHT22Data();
-	getHX711Data();
+	//getHX711Data();
 	sendPayload();
-  
+	
 }
 
 /*
@@ -127,10 +127,10 @@ void getHX711Data() {
 bool getDHT22Data() {
   dht22_humidity = dht.readHumidity();
   dht22_temperature = dht.readTemperature(true);
-  if (isnan(dht22_humidity) || isnan(dht22_temperature)) {
-    Serial.println(F("Failed to read from DHT sensor!"));
-    return false;
-  }
+  //if (isnan(dht22_humidity) || isnan(dht22_temperature)) {
+    //Serial.println(F("Failed to read from DHT sensor!"));
+    //return false;
+  //}
   str = "Humidity = \t" + String(dht22_humidity);
   str += "\n\rTemperature = \t" + String(dht22_temperature);
   Serial.println(str);
