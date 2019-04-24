@@ -16,6 +16,7 @@ Instructions:
 #include <SoftwareSerial.h>
 #include <DHT.h>
 #include <HX711.h>
+#include <LowPower.h>
 
 #define DHTPIN  6
 #define DHTTYPE DHT22
@@ -106,7 +107,19 @@ void loop() {
 	getDHT22Data();
 	//getHX711Data();
 	sendPayload();
+	delay(500);
+	Sim800l.write("AT+CIPSHUT\r\n"); 
+    delay(5000); 
+    if (Sim800l.available()) {
+		Serial.write(Sim800l.read());
+    }
 	
+	//15 mins * 60s/min = 900 secs
+	//900 s / 8s = 112.5 which rounds up to 113
+	for (uint8_t i =113; i > 0; i--) {
+		LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	}
+	setup_sim800();
 }
 
 /*
@@ -162,4 +175,59 @@ void sendPayload(void)
 	if (Sim800l.available()) {
 		Serial.write(Sim800l.read());
 	}
+}
+
+void setup_sim800(void)
+{
+	// set the data rate for the SoftwareSerial port
+  Sim800l.begin(4800);
+  delay(5000);
+  Sim800l.write("AT \n"); 
+  delay(10000); 
+  
+  Serial.println("AT+CGATT=1");
+  Sim800l.write("AT+CGATT=1\r\n"); 
+   delay(7000); 
+  if (Sim800l.available() > 0) {
+    Serial.write(Sim800l.read());
+  }
+  
+  Serial.println("AT+CSTT=hologram");
+  Sim800l.write("AT+CSTT=\"hologram\"\r\n");
+  delay(5000); 
+  if (Sim800l.available() > 0) {
+    Serial.write(Sim800l.read());
+  }
+  
+  Serial.println("AT+CIICR");
+  Sim800l.write("AT+CIICR\r\n"); 
+  delay(6000); 
+  if (Sim800l.available() > 0) {
+    Serial.write(Sim800l.read());
+  }
+  
+  Serial.println("AT+CIFSR");
+ Sim800l.write("AT+CIFSR\r\n"); 
+  delay(5000); 
+  if (Sim800l.available() > 0) {
+    Serial.write(Sim800l.read());
+  }
+  Serial.println("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"");
+  Sim800l.write("AT+CIPSTART=\"UDP\",\"73.230.127.71\",\"8888\"\r\n");
+  delay(5000); 
+  if (Sim800l.available()) {
+    Serial.write(Sim800l.read());
+  }
+  
+  Sim800l.write("AT+CIPSEND=39\r\n");
+  delay(5000); 
+  if (Sim800l.available()) {
+    Serial.write(Sim800l.read());
+  }
+   
+  Sim800l.write("temperature,device=arduino01 value=84.9\r\n"); 
+  delay(5000); 
+  if (Sim800l.available()) {
+    Serial.write(Sim800l.read());
+  }
 }
